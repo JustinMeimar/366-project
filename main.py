@@ -1,6 +1,21 @@
 import argparse
 import sys
 
+class ProgramPoint:
+    def __init__(self):
+        self.live_values = []
+    
+    def add_live_value(self, value):
+        self.live_values.append(value)
+    
+    def __str__(self):
+        string = "- ["
+        for v in self.live_values[0:-1]:
+            string += f"{v} " 
+        string += self.live_values[-1]
+        string += "]"
+        return string
+
 class Register:
     def __init__(self, name):
         self.name = name
@@ -24,14 +39,22 @@ class RegisterSet():
         return string
 
 def parse_input(path):
-    
+    """
+
+    """
     with open(path, "r") as input_file:
         n_reg = input_file.readline()
-        print("n: ", n_reg)
         r = RegisterSet(int(n_reg))
+        program_points = [] 
         for line in input_file.readlines():
-            print(line)
-    
+            p = ProgramPoint() 
+            for lv in line.strip('\r\n').split(' '):
+                p.add_live_value(lv)
+            
+            program_points.append(p)
+
+        return (r, program_points)
+
 if __name__ == "__main__":
     
     if len(sys.argv) < 2:
@@ -39,7 +62,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     path = sys.argv[1]
-    parse_input(path)
+    register_set, program_points = parse_input(path)
         
+    print(register_set)
+    for point in program_points:
+        print(point)
 
-    
