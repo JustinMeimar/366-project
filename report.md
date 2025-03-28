@@ -60,6 +60,19 @@ We can observe the live ranges for each register with the following graph.
     
 #### Implementing Graph Coloring (CSP)
 
+For the universal set of registers, we draw a graph.
+
+```
+
+r1 <-----------> r2
+
+^
+|
+|
+r3
+
+```
+
 
 #### Evaluation
 
