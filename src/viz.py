@@ -49,7 +49,7 @@ def visualize_interference_graph(graph: InterferenceGraph,
         cmap = plt.cm.get_cmap('tab10') 
         nx.draw_networkx_nodes(G, layout,
                                node_color=node_colors,
-                               cmap=cmap, node_size=700)
+                               node_size=700)
     else:
         nx.draw_networkx_nodes(G, layout, node_color='lightblue', node_size=700)
     

@@ -1,4 +1,5 @@
 import sys
+import os
 from typing import List, Dict
 from viz import visualize_interference_graph
 from allocator import RegisterSet, ProgramPoint, Solver 
@@ -52,8 +53,9 @@ if __name__ == "__main__":
     
     solver = Solver(register_set, program_points)
     coloring = solver.register_coloring(method)
-
-    visualize_interference_graph(solver.graph, coloring, f"plots/coloring-{method}.png")
+    
+    num_files = len(os.listdir("./plots"))
+    visualize_interference_graph(solver.graph, coloring, f"plots/coloring-{method}-{num_files}.png")
 
     print(f"\nInterference Graph:")
     print(solver.graph)
