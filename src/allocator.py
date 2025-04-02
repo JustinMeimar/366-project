@@ -1,5 +1,4 @@
-import sys
-from typing import List, Dict, Set
+from typing import List, Set, Dict
 
 class ProgramPoint:
     """
@@ -102,14 +101,22 @@ class Solver:
         self.reg_set: RegisterSet = reg_set 
         self.points: List[ProgramPoint] = points
         self.variables: List[str] = []
+    
+        # create a set of unique virtual registers / variables.
         var_set: Set[str] = set()
         for point in self.points:
             for var in point.live_values:
                 var_set.add(var)
+        
         self.variables = list(var_set)
         self.graph = InterferenceGraph(self.variables)
     
     def build_interference_graph(self) -> None:
+        """
+        Construct the graph where each node is a virtual regsiter/variable
+        and the edges represent a time-dependency, meaning both must be 
+        allocated to distinct virtual registers.
+        """
         for point in self.points:
             for i in range(len(point.live_values)):
                 for j in range(i+1, len(point.live_values)):
@@ -147,6 +154,7 @@ class Solver:
      
             if color >= k:
                 print(f"Warning: Not enough registers, need to spill {var}")
+                colors[var] = -1
             else:
                 colors[var] = color
         
@@ -158,8 +166,7 @@ class Solver:
         First we count the indegree of each node in our interference graph. We take
         the node with the smallest in degree, remove it from the graph, decrement
         the in-degree of it's neighbours, and push it onto a stack. We do so continu
-        """
- 
+        """ 
         self.build_interference_graph()
         k = self.reg_set.get_capacity()
         
@@ -174,9 +181,12 @@ class Solver:
             colors[var] = -1
             
         best_solution = {"colored_count": 0, "colors": colors.copy()}
-        
-        max_degree = max(self.graph.get_degree(var) for var in self.variables) if self.variables else 0
-        min_colors_needed = min(max_degree + 1, len(self.variables))
+        # 
+        # max_degree = max(
+        #         self.graph.get_degree(var) for var in self.variables
+        #     ) if self.variables else 0
+        # 
+        # min_colors_needed = min(max_degree + 1, len(self.variables))
         
         max_colorable = min(k, len(self.variables))
         
@@ -206,9 +216,11 @@ class Solver:
                     next_colors[current_var] = color
                     if backtrack(index + 1, next_colors, colored_count + 1):
                         return True
+
             if backtrack(index + 1, current_colors.copy(), colored_count):
                 return True 
             return False
+        
         backtrack(0, colors.copy(), 0)
         
         result_colors = best_solution["colors"]
@@ -231,66 +243,3 @@ class Solver:
             return self.kempe_backtracking()
         else:
             raise ValueError(f"Unknown coloring method: {method}")
-
-def parse_input(path: str) -> tuple[RegisterSet, List[ProgramPoint]]:
-    with open(path, "r") as input_file:
-        n_reg = input_file.readline()
-        r = RegisterSet(int(n_reg))
-        program_points: List[ProgramPoint] = [] 
-        for line in input_file.readlines():
-            p = ProgramPoint() 
-            for lv in line.strip('\r\n').split(' '):
-                p.add_live_value(lv)
-            
-            program_points.append(p)
-        return (r, program_points)
-
-def print_coloring(colors: Dict[str, int]) -> None:
-    registers: Dict[int, List[str]] = {}
-    spilled: List[str] = [] 
-    for var, color in colors.items():
-        if color == -1:
-            spilled.append(var)
-        else:
-            if color not in registers:
-                registers[color] = []
-            registers[color].append(var)
-    
-    print("\nRegister Allocation Results:")
-    for reg_num in sorted(registers.keys()):
-        print(f"r{reg_num}: {', '.join(registers[reg_num])}") 
-    if spilled:
-        print(f"\nSpilled variables: {', '.join(spilled)}")
-    else:
-        print("\nNo variables needed to be spilled.")
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: main.py <PATH_TO_INPUT> <COLORING_METHOD>")
-        print("COLORING_METHOD can be 'greedy' or 'backtracking'")
-        sys.exit(1)
-    
-    path = sys.argv[1]
-    method = sys.argv[2].lower()
-    
-    if method not in ["greedy", "backtracking"]:
-        print("COLORING_METHOD must be 'greedy' or 'backtracking'")
-        sys.exit(1)
-    
-    register_set, program_points = parse_input(path)
-    
-    solver = Solver(register_set, program_points)
-    coloring = solver.register_coloring(method)
-    
-    print(f"\nInterference Graph:")
-    print(solver.graph)
-    
-    print(f"\nRegister Set:")
-    print(register_set)
-    
-    print(f"\nProgram Points:")
-    for point in program_points:
-        print(point)
-    
-    print_coloring(coloring)
-
