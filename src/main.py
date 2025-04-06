@@ -1,8 +1,10 @@
 import sys
 import os
+import csv
+import argparse
 from typing import List, Dict
 from viz import visualize_interference_graph
-from allocator import RegisterSet, ProgramPoint, Solver 
+from allocator import RegisterSet, ProgramPoint, Solver
 
 def parse_input(path: str) -> tuple[RegisterSet, List[ProgramPoint]]:
     with open(path, "r") as input_file:
@@ -15,7 +17,6 @@ def parse_input(path: str) -> tuple[RegisterSet, List[ProgramPoint]]:
                 p.add_live_value(lv)
             
             program_points.append(p)
-
         return (r, program_points)
 
 def print_coloring(colors: Dict[str, int]) -> None:
@@ -37,32 +38,44 @@ def print_coloring(colors: Dict[str, int]) -> None:
     else:
         print("\nNo variables needed to be spilled.")
 
+def write_benchmark_stats(path: str,
+                          method: str,
+                          colors: Dict[str, int],
+                          solver: Solver) -> None:
+    """
+    Write benchmark statistics to a CSV file
+    """
+    
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: main.py <PATH_TO_INPUT> <COLORING_METHOD>")
-        print("COLORING_METHOD can be 'greedy' or 'backtracking'")
-        sys.exit(1)
+    # Create argument parser
+    parser = argparse.ArgumentParser(description='Register allocation solver')
+    parser.add_argument('input_path', help='Path to the input file')
+    parser.add_argument('method', choices=['greedy', 'backtracking'], 
+                        help='Coloring method: greedy or backtracking')
+    parser.add_argument('--viz', metavar='PATH', help='Path to save visualization')
+    parser.add_argument('--benchmark', metavar='PATH', help='Path to save benchmark stats')
     
-    input_path = sys.argv[1]
-    method = sys.argv[2].lower()
-
-    if method not in ["greedy", "backtracking"]:
-        print("COLORING_METHOD must be 'greedy' or 'backtracking'")
-        sys.exit(1)
+    args = parser.parse_args()
     
-    register_set, program_points = parse_input(input_path)
+    register_set, program_points = parse_input(args.input_path)
     
     solver = Solver(register_set, program_points)
-    coloring = solver.register_coloring(method)
+    coloring = solver.register_coloring(args.method)
     
-    if "--viz" in sys.argv:
-        num_files = len(os.listdir("./plots")) / 2
-        visualize_interference_graph(solver.graph, coloring,
-                                     f"plots/coloring-{method}-{num_files}.png")
+    if args.viz:
+        # Create directory if it doesn't exist
+        viz_dir = os.path.dirname(args.viz)
+        if viz_dir and not os.path.exists(viz_dir):
+            os.makedirs(viz_dir)
+        visualize_interference_graph(solver.graph, coloring, args.viz)
     
-    if "--benchmark" in sys.argv:
-        pass
-
+    if args.benchmark:
+        # Create directory if it doesn't exist
+        benchmark_dir = os.path.dirname(args.benchmark)
+        if benchmark_dir and not os.path.exists(benchmark_dir):
+            os.makedirs(benchmark_dir)
+        write_benchmark_stats(args.benchmark, args.method, coloring, solver)
+    
     print(f"\nInterference Graph:")
     print(solver.graph)
     
@@ -74,4 +87,3 @@ if __name__ == "__main__":
         print(point)
     
     print_coloring(coloring)
-
