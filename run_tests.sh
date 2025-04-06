@@ -17,16 +17,9 @@ for test_file in "$1"/*
 do
     if [ -f "$test_file" ]; then
         echo "Running test: $test_file"
-        python3 src/main.py "$test_file" greedy
+        python3 src/main.py "$test_file" greedy --viz
+        python3 src/main.py "$test_file" backtracking --viz 
     fi
 done
 
-# Run backtracking
-for test_file in "$1"/*
-do
-    if [ -f "$test_file" ]; then
-        echo "Running test: $test_file"
-        python3 src/main.py "$test_file" backtracking 
-    fi
-done
 

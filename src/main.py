@@ -11,10 +11,11 @@ def parse_input(path: str) -> tuple[RegisterSet, List[ProgramPoint]]:
         program_points: List[ProgramPoint] = [] 
         for line in input_file.readlines():
             p = ProgramPoint() 
-            for lv in line.strip('\r\n').split(' '):
+            for lv in line.strip('\r\n').strip().split(' '):
                 p.add_live_value(lv)
             
             program_points.append(p)
+
         return (r, program_points)
 
 def print_coloring(colors: Dict[str, int]) -> None:
@@ -42,20 +43,25 @@ if __name__ == "__main__":
         print("COLORING_METHOD can be 'greedy' or 'backtracking'")
         sys.exit(1)
     
-    path = sys.argv[1]
+    input_path = sys.argv[1]
     method = sys.argv[2].lower()
-    
+
     if method not in ["greedy", "backtracking"]:
         print("COLORING_METHOD must be 'greedy' or 'backtracking'")
         sys.exit(1)
     
-    register_set, program_points = parse_input(path)
+    register_set, program_points = parse_input(input_path)
     
     solver = Solver(register_set, program_points)
     coloring = solver.register_coloring(method)
     
-    num_files = len(os.listdir("./plots"))
-    visualize_interference_graph(solver.graph, coloring, f"plots/coloring-{method}-{num_files}.png")
+    if "--viz" in sys.argv:
+        num_files = len(os.listdir("./plots")) / 2
+        visualize_interference_graph(solver.graph, coloring,
+                                     f"plots/coloring-{method}-{num_files}.png")
+    
+    if "--benchmark" in sys.argv:
+        pass
 
     print(f"\nInterference Graph:")
     print(solver.graph)

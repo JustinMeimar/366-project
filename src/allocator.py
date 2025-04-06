@@ -108,7 +108,7 @@ class Solver:
             for var in point.live_values:
                 var_set.add(var)
         
-        self.variables = list(var_set)
+        self.variables = sorted(list(var_set))
         self.graph = InterferenceGraph(self.variables)
     
     def build_interference_graph(self) -> None:
@@ -127,115 +127,29 @@ class Solver:
     
     def greedy_coloring(self) -> Dict[str, int]:
         """
-        The greedy algorithm will find the virtual register with the highest
-        in degree and allocate it first. This is a heuristic for allocating
-        the most constrained variables first. It does not always produce the
-        optimal coloring because two highly-constrained variables may in-fact
-        be disjoint in liveness, and therefore can use the same register.
+        The linear scan algorithm is greedy. 
         """
         self.build_interference_graph()
-        k = self.reg_set.get_capacity()
-        sorted_vars = sorted(
-            self.variables, 
-            key=lambda var: self.graph.get_degree(var), 
-            reverse=True
-        )
         colors: Dict[str, int] = {}
+        k = self.reg_set.get_capacity()
         for var in self.variables:
-            colors[var] = -1
-        for var in sorted_vars:
-            neighbor_colors = set()
-            for neighbor in self.graph.get_neighbors(var):
-                if colors[neighbor] != -1:
-                    neighbor_colors.add(colors[neighbor])
-            color = 0
-            while color < k and color in neighbor_colors:
-                color += 1
-     
-            if color >= k:
-                print(f"Warning: Not enough registers, need to spill {var}")
-                colors[var] = -1
+            colors[var] = -1 # initially all variables are spilled
+        for var in self.variables:
+            neighbour_colors = set()
+            for n in self.graph.get_neighbors(var):
+                if colors[n] != -1:
+                    neighbour_colors.add(colors[n])
+            # find miniumum unique color not in neighbour_colors
+            min_color = 0
+            while min_color < k and min_color in neighbour_colors:
+                min_color += 1
+
+            if min_color < k:
+                colors[var] = min_color
             else:
-                colors[var] = color
-        
+                colors[var] = -1 
         return colors
 
-    def kempe_backtracking(self) -> Dict[str, int]:
-        """
-        Kempe backtracking is a variant of register coloring which goes as follows.
-        First we count the indegree of each node in our interference graph. We take
-        the node with the smallest in degree, remove it from the graph, decrement
-        the in-degree of it's neighbours, and push it onto a stack. We do so continu
-        """ 
-        self.build_interference_graph()
-        k = self.reg_set.get_capacity()
-        
-        sorted_vars = sorted(self.variables, 
-            key=lambda var: self.graph.get_degree(var), 
-            reverse=True
-        )
-         
-        print(f"Vars sorted by degree: {sorted_vars}")
-        colors = {}
-        for var in self.variables:
-            colors[var] = -1
-            
-        best_solution = {"colored_count": 0, "colors": colors.copy()}
-        # 
-        # max_degree = max(
-        #         self.graph.get_degree(var) for var in self.variables
-        #     ) if self.variables else 0
-        # 
-        # min_colors_needed = min(max_degree + 1, len(self.variables))
-        
-        max_colorable = min(k, len(self.variables))
-        
-        def backtrack(index: int, current_colors: Dict[str, int], colored_count: int):
-            if colored_count > best_solution["colored_count"]:
-                best_solution["colored_count"] = colored_count
-                best_solution["colors"] = current_colors.copy()
-                if colored_count == max_colorable:
-                    return True
-                    
-            if index == len(sorted_vars):
-                return False
-            
-            current_var = sorted_vars[index]
-            remaining_vars = len(sorted_vars) - index
-            if colored_count + remaining_vars <= best_solution["colored_count"]:
-                return False
-                
-            neighbor_colors = set()
-            for neighbor in self.graph.get_neighbors(current_var):
-                if current_colors[neighbor] != -1:
-                    neighbor_colors.add(current_colors[neighbor])
-            
-            for color in range(k):
-                if color not in neighbor_colors:
-                    next_colors = current_colors.copy()
-                    next_colors[current_var] = color
-                    if backtrack(index + 1, next_colors, colored_count + 1):
-                        return True
-
-            if backtrack(index + 1, current_colors.copy(), colored_count):
-                return True 
-            return False
-        
-        backtrack(0, colors.copy(), 0)
-        
-        result_colors = best_solution["colors"]
-        
-        colored_count = sum(1 for color in result_colors.values() if color != -1)
-        if colored_count == 0:
-            print("Backtracking could not color any variables.")
-        elif colored_count < len(self.variables):
-            print(f"Backtracking found a partial solution with {len(self.variables) - colored_count} spilled variables.")
-            print(f"Using {colored_count} of {k} available registers.")
-        else:
-            print("Backtracking found a complete solution!")
-            
-        return result_colors
- 
     def register_coloring(self, method: str = "greedy") -> Dict[str, int]:
         if method == "greedy":
             return self.greedy_coloring()
@@ -243,3 +157,59 @@ class Solver:
             return self.kempe_backtracking()
         else:
             raise ValueError(f"Unknown coloring method: {method}")
+    
+    def kempe_backtracking(self) -> Dict[str, int]:
+        """
+        Kempe backtracking is a variant of register coloring which goes as follows.
+        First we count the indegree of each node in our interference graph. We take
+        the node with the smallest in degree, remove it from the graph, decrement
+        the in-degree of it's neighbours, and push it onto a stack.
+        """ 
+        self.build_interference_graph()
+        k = self.reg_set.get_capacity()
+        
+        sorted_vars = sorted(self.variables, 
+                             key=lambda var: self.graph.get_degree(var),
+                             reverse=False)
+        
+        colors = {var: -1 for var in self.variables}
+        best_colors = colors.copy()
+        max_colored = 0
+        
+        def is_valid_color(var: str, color: int, current_colors: Dict[str, int]):
+            # Closure for checking if a node is colorable as color
+            for neighbor in self.graph.get_neighbors(var):
+                if current_colors[neighbor] == color:
+                    return False
+            return True
+        
+        def backtrack(index: int, current_colors: Dict[str, int], colored_count: int):
+            # Closure for backtracing
+            nonlocal max_colored, best_colors
+            if index == len(sorted_vars):
+                if colored_count > max_colored:
+                    max_colored = colored_count
+                    best_colors = current_colors.copy()
+                return
+            
+            var = sorted_vars[index]
+            backtrack(index + 1, current_colors, colored_count)
+            
+            for color in range(k):
+                if is_valid_color(var, color, current_colors):
+                    current_colors[var] = color
+                    backtrack(index + 1, current_colors, colored_count + 1)
+                    current_colors[var] = -1  # Backtrack to try other options
+        
+        working_colors = colors.copy()
+        backtrack(0, working_colors, 0)
+        
+        # Update colors with the best solution found
+        colors.update(best_colors)
+        colored_count = sum(1 for color in colors.values() if color != -1)
+        spilled_count = len(self.variables) - colored_count
+        print(f"Backtracking found a partial solution with {spilled_count} spilled variables.")
+        print(f"Using {colored_count} of {k} available registers.")
+        
+        return colors
+

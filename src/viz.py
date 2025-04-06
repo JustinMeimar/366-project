@@ -34,6 +34,7 @@ def visualize_interference_graph(graph: InterferenceGraph,
     the algorithm.
     """
     G = nx.Graph()
+    print("vars: ", graph.variables)
     for var in graph.variables:
         G.add_node(var)
     
