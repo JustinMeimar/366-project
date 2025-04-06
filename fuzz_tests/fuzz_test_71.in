@@ -1,17 +1,8 @@
-8
-v3
-v3 v7 v8
-v3 v7 v8 v10 v2
-v3 v7 v8 v10 v2 v4
-v3 v7 v8 v10 v2 v4
-v3 v7 v8 v10 v2 v4 v9
-v3 v7 v8 v10 v2 v4 v5 v6
-v3 v7 v8 v2 v4 v5 v6
-v3 v7 v8 v2 v4 v5 v6 v11
-v3 v7 v8 v2 v4 v5 v11
-v3 v7 v8 v2 v4 v5 v11
-v3 v7 v8 v2 v5 v11 v1
-v3 v7 v8 v2 v5 v11 v1 v10 v9
-v3 v7 v8 v5 v11 v1 v10 v9 v6 v4
-v3 v7 v8 v5 v11 v1 v10 v9 v6 v4 v2
-v3 v7 v8 v5 v11 v1 v10 v9 v6 v4 v2
+6
+v10
+v10
+v1 v7
+v1 v7 v4
+v1 v7 v10 v6
+v1 v7 v10 v6 v9
+v1 v7 v10 v6 v9

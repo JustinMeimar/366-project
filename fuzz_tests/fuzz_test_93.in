@@ -1,10 +1,10 @@
-14
-v11
-v11 v5
-v5 v13
-v5 v13
-v5 v13
-v5 v15 v2
-v5 v15 v2 v13
-v5 v15 v2 v13 v10 v12
-v5 v15 v2 v13 v10 v12 v14
+4
+v3
+v3 v4
+v3 v4 v2 v1
+v3 v4 v2 v1 v5
+v3 v4 v1 v5 v7 v8
+v3 v4 v1 v5 v7 v8 v6
+v3 v4 v1 v5 v8 v6
+v3 v4 v1 v5 v8 v6
+v3 v4 v1 v5 v6

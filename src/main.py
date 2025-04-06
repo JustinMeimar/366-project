@@ -46,6 +46,33 @@ def write_benchmark_stats(path: str,
     Write benchmark statistics to a CSV file
     """
     
+    # Create header if file doesn't exist
+    file_exists = os.path.isfile(path)
+    
+    # Calculate stats
+    num_vars = len(colors)
+    num_spilled = sum(1 for color in colors.values() if color == -1)
+    spill_percentage = (num_spilled / num_vars) * 100 if num_vars > 0 else 0
+    max_color = max([color for color in colors.values() if color != -1], default=-1) + 1
+    num_edges = solver.graph.num_edges()
+    
+    with open(path, 'a', newline='') as csvfile:
+        fieldnames = ['Method', 'NumVariables', 'NumSpilled', 'SpillPercentage', 
+                     'MaxColorsUsed', 'NumEdges', 'TimeToSolve']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+        if not file_exists:
+            writer.writeheader()
+        
+        writer.writerow({
+            'Method': method,
+            'NumVariables': num_vars,
+            'NumSpilled': num_spilled,
+            'SpillPercentage': f"{spill_percentage:.2f}",
+            'MaxColorsUsed': max_color,
+            'NumEdges': num_edges,
+            'TimeToSolve': round(solver.last_solve_time, 5) if hasattr(solver, 'last_solve_time') else 'N/A'
+        })
 if __name__ == "__main__":
     # Create argument parser
     parser = argparse.ArgumentParser(description='Register allocation solver')
@@ -55,13 +82,12 @@ if __name__ == "__main__":
     parser.add_argument('--viz', metavar='PATH', help='Path to save visualization')
     parser.add_argument('--benchmark', metavar='PATH', help='Path to save benchmark stats')
     
-    args = parser.parse_args()
-    
-    register_set, program_points = parse_input(args.input_path)
-    
+    args = parser.parse_args() 
+    register_set, program_points = parse_input(args.input_path) 
     solver = Solver(register_set, program_points)
     coloring = solver.register_coloring(args.method)
     
+    print("Running Test: ", args.input_path)
     if args.viz:
         # Create directory if it doesn't exist
         viz_dir = os.path.dirname(args.viz)

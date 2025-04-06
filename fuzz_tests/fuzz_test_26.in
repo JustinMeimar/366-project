@@ -1,31 +1,10 @@
-15
-v14
-v14 v10
-v10
-v10 v8 v6
-v10 v6
-v10 v6
-v10 v6 v9
-v10 v6 v9 v2
-v10 v6 v9 v2 v16
-v10 v6 v9 v16
-v10 v6 v9 v16 v13 v11
-v10 v6 v9 v16 v13 v11 v2
-v10 v6 v9 v16 v13 v11 v2
-v10 v6 v9 v16 v13 v11 v3 v15
-v10 v6 v9 v16 v13 v11 v3 v15
-v10 v6 v9 v16 v13 v11 v3 v15 v2
-v10 v6 v9 v16 v13 v11 v3 v15 v2 v14
-v10 v6 v9 v16 v13 v11 v3 v15 v2
-v10 v6 v9 v16 v13 v11 v3 v15 v2 v8 v7
-v10 v6 v9 v16 v13 v11 v3 v15 v2 v8 v7 v4
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v12 v14
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v12 v14 v13
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v12 v14 v13
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v14 v13
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v14 v13
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v14 v13 v12
-v10 v6 v9 v16 v11 v3 v15 v2 v8 v7 v4 v1 v14 v13 v12 v5
-v10 v6 v9 v16 v3 v15 v2 v8 v7 v4 v1 v14 v13 v12 v5
-v10 v6 v9 v16 v3 v15 v2 v8 v7 v4 v1 v14 v13 v12 v5 v11
+6
+v2
+v2 v5
+v5
+v6
+v6 v1
+v6 v1
+v6 v1 v8 v5
+v6 v1 v8 v5
+v6 v8 v5 v3

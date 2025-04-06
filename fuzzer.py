@@ -3,10 +3,10 @@ import sys
 
 def generate_test_case(output_path):
     # pick a random number for register capacity
-    rc = random.randint(4, 16)
+    rc = random.randint(4, 7)
     
     # pick a random number of program points
-    n_points = random.randint(6, 30)
+    n_points = random.randint(6, 12)
     
     # create a pool of variable names (v1, v2, ..., vN)
     num_vars = rc + random.randint(1, 5)

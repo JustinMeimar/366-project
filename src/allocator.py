@@ -1,4 +1,5 @@
 from typing import List, Set, Dict
+import time
 
 class ProgramPoint:
     """
@@ -77,6 +78,18 @@ class InterferenceGraph:
         self.adj_matrix[i][j] = 1
         self.adj_matrix[j][i] = 1
     
+    def num_edges(self) -> int:
+        edges = 0
+        seen = set()
+        m = len(self.adj_matrix)
+        n = len(self.adj_matrix[0])
+        for i in range(m):
+            for j in range(n):
+                if self.adj_matrix[i][j] != 0 and (i,j) not in seen:
+                    edges += 1
+                    seen.add((i, j))
+        return edges
+
     def get_neighbors(self, var: str) -> List[str]:
         idx = self.var_to_index[var]
         neighbors = []
@@ -101,7 +114,8 @@ class Solver:
         self.reg_set: RegisterSet = reg_set 
         self.points: List[ProgramPoint] = points
         self.variables: List[str] = []
-    
+        self.last_solve_time = 0.0 # keep track of solve time for benchmarks
+
         # create a set of unique virtual registers / variables.
         var_set: Set[str] = set()
         for point in self.points:
@@ -129,6 +143,7 @@ class Solver:
         """
         The linear scan algorithm is greedy. 
         """
+        start = time.time()
         self.build_interference_graph()
         colors: Dict[str, int] = {}
         k = self.reg_set.get_capacity()
@@ -148,6 +163,8 @@ class Solver:
                 colors[var] = min_color
             else:
                 colors[var] = -1 
+        end = time.time()
+        self.last_solve_time = end - start
         return colors
 
     def register_coloring(self, method: str = "greedy") -> Dict[str, int]:
@@ -165,6 +182,7 @@ class Solver:
         the node with the smallest in degree, remove it from the graph, decrement
         the in-degree of it's neighbours, and push it onto a stack.
         """ 
+        start = time.time()
         self.build_interference_graph()
         k = self.reg_set.get_capacity()
         
@@ -211,5 +229,7 @@ class Solver:
         print(f"Backtracking found a partial solution with {spilled_count} spilled variables.")
         print(f"Using {colored_count} of {k} available registers.")
         
+        end = time.time()
+        self.last_solve_time = end - start
         return colors
 
