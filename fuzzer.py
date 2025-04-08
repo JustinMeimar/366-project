@@ -9,7 +9,7 @@ def generate_test_case(output_path):
     n_points = random.randint(6, 12)
     
     # create a pool of variable names (v1, v2, ..., vN)
-    num_vars = rc + random.randint(1, 5)
+    num_vars = rc + random.randint(3, 8)
     var_pool = [f"v{i+1}" for i in range(num_vars)]
     program_points = []
     
